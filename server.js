@@ -22,12 +22,12 @@ const client = new OpenAI({
 app.get("/", (req, res) => {
   res.send("TraumNest backend çalışıyor");
 });
-app.post("/story", async (req, res) => {
+app.post("/story", async (req, res) 
+ => {
   try {
-const audioDir = path.join(process.cwd(), "public", "audio");
-fs.mkdirSync(audioDir, { recursive: true });
     const { childName, theme, keywords } = req.body;
-
+    const audioDir = path.join(process.cwd(), "public", "audio");
+    fs.mkdirSync(audioDir, { recursive: true });
     const prompt = `
 Erstelle ein liebevolles deutsches Einschlafmärchen für ein Kind.
 
