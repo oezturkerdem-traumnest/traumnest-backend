@@ -8,8 +8,12 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
+app.options("*", cors());
 app.use(express.json());
-app.use("/audio", express.static("public/audio"));
+app.use(
+  "/audio",
+  express.static(path.join(process.cwd(), "public", "audio"))
+);
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,6 +24,8 @@ app.get("/", (req, res) => {
 });
 app.post("/story", async (req, res) => {
   try {
+const audioDir = path.join(process.cwd(), "public", "audio");
+fs.mkdirSync(audioDir, { recursive: true });
     const { childName, theme, keywords } = req.body;
 
     const prompt = `
@@ -59,14 +65,18 @@ Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
     });
 
     // 3) MP3 dosyasını kaydet
-    const safeName = `${Date.now()}_${(childName || "child").replace(/[^a-z0-9_-]/gi, "")}.mp3`;
-    const outPath = path.join(process.cwd(), "public", "audio", safeName);
+    const audioDir = 
+path.join(process.cwd(), "public", "audio");
+fs.mkdirSync(audioDir, { recursive: true });
+
+const safeName = `${Date.now()}_${(childName || "child").replace(/[^a-z0-9_-]/gi, "")}.mp3`;
+const outPath = path.join(audioDir, safeName);
 
     const buffer = Buffer.from(await ttsResp.arrayBuffer());
     fs.writeFileSync(outPath, buffer);
 
     // 4) Telefonun erişeceği URL
-    const baseUrl = `${req.protocol}://${req.get("host")}`; // örn: http://192.168.0.150:3000
+    const baseUrl = `https://${req.get("host")}`;// örn: http://192.168.0.150:3000
     const audioUrl = `${baseUrl}/audio/${safeName}`;
 
     // 5) FlutterFlow'a dön
