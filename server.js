@@ -51,15 +51,11 @@ Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
       storyText: storyJson.storyText
     });
 
-  } catch (err) {
+   } catch (err) {
     console.error(err);
-    return res.status(500).json({
-      success: false,
-      error: String(err)
-    });
+    return res.status(500).json({ success:false, error:String(err) });
   }
 });
-
 // 2️⃣ MP3 dosya adı
 const safeName = `${Date.now()}-${childName || "child"}.mp3`;
 const outPath = path.join(audioDir, safeName);
