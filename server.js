@@ -22,20 +22,13 @@ app.post("/story", async (req, res) => {
   try {
     const { childName, theme, keywords } = req.body;
 
-    const prompt = `
+   const prompt = `
 Erstelle ein liebevolles deutsches Einschlafmärchen für ein Kind.
-
-Name des Kindes: ${childName}
-Thema: ${theme}
-Stichwörter: ${keywords}
-
-Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
 {
   "title": "Titel der Geschichte",
   "storyText": "Die komplette Geschichte als Text"
 }
 `;
-
     // 1️⃣ Masal metni üret
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
