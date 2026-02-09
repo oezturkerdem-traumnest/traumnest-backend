@@ -38,54 +38,59 @@ Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
 }
 `;
 
-    // 3️⃣ Metni üret
+    // 3️⃣ Masal metni üret
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: prompt }]
     });
 
     const storyJson = JSON.parse(
       completion.choices[0].message.content
     );
 
-    const { title, storyText } = storyJson;
+    const title = storyJson.title;
+    const storyText = storyJson.storyText;
 
-    // 4️⃣ MP3 dosya adı (⚠️ childName artık TANIMLI)
-    const audioDir = path.join(process.cwd(), "public", "audio");
-    fs.mkdirSync(audioDir, { recursive: true });
-
+    // 4️⃣ MP3 dosya adı (❗ childName ARTIK TANIMLI)
     const safeName = `${Date.now()}-${childName || "child"}.mp3`;
     const outPath = path.join(audioDir, safeName);
 
-    // 5️⃣ TTS → MP3
+    // 5️⃣ TTS → MP3 üret
     const speech = await client.audio.speech.create({
       model: "gpt-4o-mini-tts",
       voice: "alloy",
-      input: storyText,
+      input: storyText
     });
 
     const buffer = Buffer.from(await speech.arrayBuffer());
     fs.writeFileSync(outPath, buffer);
 
-    // 6️⃣ Response
+    // 6️⃣ BASE URL (❗ req sadece BURADA kullanılır)
+    const protocol =
+      req.headers["x-forwarded-proto"] || "https";
+    const host =
+      req.headers["x-forwarded-host"] || req.get("host");
+    const baseUrl = `${protocol}://${host}`;
+
+    const audioUrl = `${baseUrl}/audio/${safeName}`;
+
+    // 7️⃣ FlutterFlow’a dönen response
     return res.json({
       success: true,
       title,
       storyText,
-      audioUrl: `/audio/${safeName}`,
+      audioUrl
     });
 
   } catch (err) {
-    console.error("STORY ERROR:", err);
+    console.error(err);
     return res.status(500).json({
       success: false,
-      error: String(err),
+      error: String(err)
     });
   }
 });
-// 4️⃣ MP3 URL
-const baseUrl = `https://${req.get("host")}`;
-const audioUrl = `${baseUrl}/audio/${safeName}`;
+
 
 // 5️⃣ FlutterFlow’a dön
 res.json({
