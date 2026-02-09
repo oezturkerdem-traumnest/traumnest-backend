@@ -28,7 +28,7 @@ app.post("/story", async (req, res)
     const { childName, theme, keywords } = req.body;
     const audioDir = path.join(process.cwd(), "public", "audio");
     fs.mkdirSync(audioDir, { recursive: true });
-    const prompt = `
+   const prompt = `
 Erstelle ein liebevolles deutsches Einschlafmärchen für ein Kind.
 
 Name des Kindes: ${childName}
