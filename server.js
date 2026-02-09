@@ -24,37 +24,32 @@ app.post("/story", async (req, res) => {
 
     const safeName = `${Date.now()}-${(childName || "child")}.mp3`;
 
-    // devam...
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success:false, error: String(err) });
-  }
-});
-   const prompt = `
+    const prompt = `
 Erstelle ein liebevolles deutsches Einschlafmärchen für ein Kind.
+
+Name des Kindes: ${childName}
+Thema: ${theme}
+Stichwörter: ${keywords}
+
+Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
 {
   "title": "Titel der Geschichte",
   "storyText": "Die komplette Geschichte als Text"
 }
 `;
-    // 1️⃣ Masal metni üret
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [
-        { role: "user", content: prompt }
-      ]
+      messages: [{ role: "user", content: prompt }]
     });
 
     const storyJson = JSON.parse(completion.choices[0].message.content);
-    const storyText = storyJson.storyText;
-    const title = storyJson.title;
 
-    // ŞİMDİLİK sadece text dönelim
-   // return res.json({
-   //   success: true,
-   //   title,
-   //   storyText
-  //  });
+    return res.json({
+      success: true,
+      title: storyJson.title,
+      storyText: storyJson.storyText
+    });
 
   } catch (err) {
     console.error(err);
@@ -64,7 +59,6 @@ Erstelle ein liebevolles deutsches Einschlafmärchen für ein Kind.
     });
   }
 });
-
 
 // 2️⃣ MP3 dosya adı
 const safeName = `${Date.now()}-${childName || "child"}.mp3`;
