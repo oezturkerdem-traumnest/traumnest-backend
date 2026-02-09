@@ -22,6 +22,14 @@ app.post("/story", async (req, res) => {
   try {
     const { childName, theme, keywords } = req.body;
 
+    const safeName = `${Date.now()}-${(childName || "child")}.mp3`;
+
+    // devam...
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success:false, error: String(err) });
+  }
+});
    const prompt = `
 Erstelle ein liebevolles deutsches Einschlafmärchen für ein Kind.
 {
