@@ -38,7 +38,43 @@ Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
     return res.status(500).json({ success: false, error: String(err) });
   }
 });
+// 1️⃣ Masal metnini üret
+const completion = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [
+    { role: "user", content: prompt }
+  ],
+});
 
+const storyJson = JSON.parse(completion.choices[0].message.content);
+const storyText = storyJson.storyText;
+const title = storyJson.title;
+
+// 2️⃣ MP3 dosya adı
+const safeName = `${Date.now()}-${childName || "child"}.mp3`;
+const outPath = path.join(audioDir, safeName);
+
+// 3️⃣ TTS → MP3 üret
+const speech = await client.audio.speech.create({
+  model: "gpt-4o-mini-tts",
+  voice: "alloy",
+  input: storyText,
+});
+
+const buffer = Buffer.from(await speech.arrayBuffer());
+fs.writeFileSync(outPath, buffer);
+
+// 4️⃣ MP3 URL
+const baseUrl = `https://${req.get("host")}`;
+const audioUrl = `${baseUrl}/audio/${safeName}`;
+
+// 5️⃣ FlutterFlow’a dön
+res.json({
+  success: true,
+  title,
+  storyText,
+  audioUrl
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Backend çalışıyor: ${PORT}`);
