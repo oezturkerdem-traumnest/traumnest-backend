@@ -22,28 +22,46 @@ app.post("/story", async (req, res) => {
   try {
     const { childName, theme, keywords } = req.body;
 
-    const prompt =
-`Erstelle ein liebevolles deutsches Einschlafmärchen für ein Kind.
+    const prompt = `
+Erstelle ein liebevolles deutsches Einschlafmärchen für ein Kind.
 
 Name des Kindes: ${childName}
 Thema: ${theme}
 Stichwörter: ${keywords}
 
 Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
-{"title":"Titel der Geschichte","storyText":"Die komplette Geschichte als Text"}`;
+{
+  "title": "Titel der Geschichte",
+  "storyText": "Die komplette Geschichte als Text"
+}
+`;
 
-    return res.json({ success: true, promptPreview: prompt });
+    // 1️⃣ Masal metni üret
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "user", content: prompt }
+      ]
+    });
+
+    const storyJson = JSON.parse(completion.choices[0].message.content);
+    const storyText = storyJson.storyText;
+    const title = storyJson.title;
+
+    // ŞİMDİLİK sadece text dönelim
+    return res.json({
+      success: true,
+      title,
+      storyText
+    });
+
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ success: false, error: String(err) });
+    return res.status(500).json({
+      success: false,
+      error: String(err)
+    });
   }
-});
-// 1️⃣ Masal metnini üret
-const completion = await client.chat.completions.create({
-  model: "gpt-4o-mini",
-  messages: [
-    { role: "user", content: prompt }
-  ],
 });
 
 const storyJson = JSON.parse(completion.choices[0].message.content);
