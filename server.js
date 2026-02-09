@@ -49,11 +49,11 @@ Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
     const title = storyJson.title;
 
     // ŞİMDİLİK sadece text dönelim
-    return res.json({
-      success: true,
-      title,
-      storyText
-    });
+   // return res.json({
+   //   success: true,
+   //   title,
+   //   storyText
+  //  });
 
   } catch (err) {
     console.error(err);
@@ -64,9 +64,6 @@ Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
   }
 });
 
-const storyJson = JSON.parse(completion.choices[0].message.content);
-const storyText = storyJson.storyText;
-const title = storyJson.title;
 
 // 2️⃣ MP3 dosya adı
 const safeName = `${Date.now()}-${childName || "child"}.mp3`;
