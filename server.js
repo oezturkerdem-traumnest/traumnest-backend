@@ -20,77 +20,54 @@ app.get("/", (req, res) => res.send("TraumNest backend çalışıyor"));
 
 app.post("/story", async (req, res) => {
   try {
-    // 1️⃣ Body’den gelenler
-    const { childName, theme, keywords } = req.body;
+    const { childName, theme, keywords } = req.body || {};
 
-    // 2️⃣ Prompt
     const prompt = `
 Erstelle ein liebevolles deutsches Einschlafmärchen für ein Kind.
 
-Name des Kindes: ${childName}
-Thema: ${theme}
-Stichwörter: ${keywords}
+Name des Kindes: ${childName || ""}
+Thema: ${theme || ""}
+Stichwörter: ${keywords || ""}
 
 Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
-{
-  "title": "Titel der Geschichte",
-  "storyText": "Die komplette Geschichte als Text"
-}
-`;
+{"title":"Titel der Geschichte","storyText":"Die komplette Geschichte als Text"}
+`.trim();
 
-    // 3️⃣ Masal metni üret
+    // 1) Masal metni üret
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }]
+      messages: [{ role: "user", content: prompt }],
     });
 
-    const storyJson = JSON.parse(
-      completion.choices[0].message.content
-    );
+    const content = completion?.choices?.[0]?.message?.content || "{}";
 
-    const title = storyJson.title;
-    const storyText = storyJson.storyText;
+    let storyJson;
+    try {
+      storyJson = JSON.parse(content);
+    } catch (e) {
+      // JSON parse patlarsa fallback
+      storyJson = { title: "Geschichte", storyText: content };
+    }
 
-    // 4️⃣ MP3 dosya adı (❗ childName ARTIK TANIMLI)
-    const safeName = `${Date.now()}-${childName || "child"}.mp3`;
-    const outPath = path.join(audioDir, safeName);
+    const title = storyJson.title || "Geschichte";
+    const storyText = storyJson.storyText || "";
 
-    // 5️⃣ TTS → MP3 üret
-    const speech = await client.audio.speech.create({
-      model: "gpt-4o-mini-tts",
-      voice: "alloy",
-      input: storyText
-    });
+    // 2) MP3 dosya adı (SADECE route içinde!)
+    const safeName = `${Date.now()}-${(childName || "child").replace(/[^a-z0-9_-]/gi, "")}.mp3`;
 
-    const buffer = Buffer.from(await speech.arrayBuffer());
-    fs.writeFileSync(outPath, buffer);
-
-    // 6️⃣ BASE URL (❗ req sadece BURADA kullanılır)
-    const protocol =
-      req.headers["x-forwarded-proto"] || "https";
-    const host =
-      req.headers["x-forwarded-host"] || req.get("host");
-    const baseUrl = `${protocol}://${host}`;
-
-    const audioUrl = `${baseUrl}/audio/${safeName}`;
-
-    // 7️⃣ FlutterFlow’a dönen response
+    // Şimdilik ses üretmiyorsan sadece text dön
     return res.json({
       success: true,
       title,
       storyText,
-      audioUrl
+      audioUrl: null, // ses yoksa null
+      fileName: safeName, // ileride mp3 üretince lazım olacak
     });
-
   } catch (err) {
     console.error(err);
-    return res.status(500).json({
-      success: false,
-      error: String(err)
-    });
+    return res.status(500).json({ success: false, error: String(err) });
   }
 });
-
 
 // 5️⃣ FlutterFlow’a dön
 res.json({
