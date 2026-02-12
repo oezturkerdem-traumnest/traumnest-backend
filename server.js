@@ -10,19 +10,9 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// statik audio (Railway uyumlu)
 const audioDir = path.join(process.cwd(), "public", "audio");
-await fs.promises.mkdir(audioDir, { recursive: true });
 app.use("/audio", express.static(audioDir));
 
-const speech = await client.audio.speech.create({
-  model: "gpt-4o-mini-tts",
-  voice: "alloy",
-  input: storyText
-});
-
-const buffer = Buffer.from(await speech.arrayBuffer());
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
