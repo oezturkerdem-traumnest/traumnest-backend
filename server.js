@@ -11,8 +11,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// statik audio
-app.use("/audio", express.static(path.join(process.cwd(), "public", "audio")));
+// statik audio (Railway uyumlu)
+const audioDir = path.join(process.cwd(), "public", "audio");
+await fs.promises.mkdir(audioDir, { recursive: true });
+app.use("/audio", express.static(audioDir));
+
+const speech = await client.audio.speech.create({
+  model: "gpt-4o-mini-tts",
+  voice: "alloy",
+  input: storyText
+});
+
+const buffer = Buffer.from(await speech.arrayBuffer());
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -53,23 +63,34 @@ Gib die Antwort AUSSCHLIESSLICH als JSON zurück:
     const storyText = storyJson.storyText || "";
 
     // 2) MP3 dosya adı (SADECE route içinde!)
-    const safeName = `${Date.now()}-${(childName || "child").replace(/[^a-z0-9_-]/gi, "")}.mp3`;
+const safeName = `${Date.now()}-${(childName || "child").replace(/[^a-z0-9_-]/gi, "")}.mp3`;
 
-    // Şimdilik ses üretmiyorsan sadece text dön
-    return res.json({
-      success: true,
-      title,
-      storyText,
-      audioUrl: null, // ses yoksa null
-      fileName: safeName, // ileride mp3 üretince lazım olacak
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false, error: String(err) });
-  }
+// MP3 klasörü + path
+const audioDir = path.join(process.cwd(), "public", "audio");
+await fs.promises.mkdir(audioDir, { recursive: true });
+const outPath = path.join(audioDir, safeName);
+
+// TTS üret (MP3)
+const speech = await client.audio.speech.create({
+  model: "gpt-4o-mini-tts",
+  voice: "alloy",
+  input: storyText,
+  format: "mp3",
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Backend çalışıyor: ${PORT}`);
+// Dosyaya yaz
+const buffer = Buffer.from(await speech.arrayBuffer());
+await fs.promises.writeFile(outPath, buffer);
+
+// audioUrl üret
+const baseUrl = `https://${req.get("host")}`;
+const audioUrl = `${baseUrl}/audio/${safeName}`;
+// FlutterFlow’a dön
+return res.json({
+  success: true,
+  title,
+  storyText,
+  audioUrl,
+  fileName: safeName,
 });
+ 
