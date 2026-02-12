@@ -83,4 +83,13 @@ return res.json({
   audioUrl,
   fileName: safeName,
 });
- 
+ } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Backend çalışıyor: ${PORT}`);
+});
