@@ -66,12 +66,6 @@ const outPath = path.join(audioDir, safeName);
   voice: "nova",
   input: storyText,
   format: "mp3",
-
-  instructions: `
-Speak like a warm, loving mother reading a bedtime story to a sleepy child.
-Use a soft, calm, gentle and emotional tone.
-Speak slowly and soothingly.
-`
 });
 
 // Dosyaya yaz
