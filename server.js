@@ -61,11 +61,17 @@ await fs.promises.mkdir(audioDir, { recursive: true });
 const outPath = path.join(audioDir, safeName);
 
 // TTS üret (MP3)
-const speech = await client.audio.speech.create({
+ const speech = await client.audio.speech.create({
   model: "gpt-4o-mini-tts",
-  voice: "alloy",
+  voice: "nova",
   input: storyText,
   format: "mp3",
+
+  instructions: `
+Speak like a warm, loving mother reading a bedtime story to a sleepy child.
+Use a soft, calm, gentle and emotional tone.
+Speak slowly and soothingly.
+`
 });
 
 // Dosyaya yaz
