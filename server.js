@@ -63,7 +63,7 @@ const outPath = path.join(audioDir, safeName);
 // TTS üret (MP3)
  const speech = await client.audio.speech.create({
   model: "gpt-4o-mini-tts",
-  voice: "nova",
+  voice: "alloy",
   input: storyText,
   format: "mp3",
 });
