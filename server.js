@@ -66,6 +66,12 @@ const outPath = path.join(audioDir, safeName);
   voice: "alloy",
   input: storyText,
   format: "mp3",
+
+  instructions: `
+Soft female bedtime storyteller voice.
+Warm, calm and gentle.
+Speak slowly.
+`
 });
 
 // Dosyaya yaz
